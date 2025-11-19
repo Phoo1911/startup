@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 창업지원 매칭 시스템</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main {
+            display: flex;
+            min-height: 600px;
+        }
+        
+        .sidebar {
+            width: 400px;
+            background: #f8f9fa;
+            padding: 2rem;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card p {
+            opacity: 0.9;
+        }
+        
+        .match-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .match-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .match-card.priority-high { border-left-color: #ef5350; }
+        .match-card.priority-medium { border-left-color: #ffa726; }
+        .match-card.priority-low { border-left-color: #66bb6a; }
+        
+        .match-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .match-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .badge-score { background: #e3f2fd; color: #1976d2; }
+        .badge-type { background: #f3e5f5; color: #7b1fa2; }
+        .badge-priority { background: #fff3e0; color: #f57c00; }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .chat-container {
+            margin-top: 2rem;
+            border-top: 2px solid #dee2e6;
+            padding-top: 2rem;
+        }
+        
+        .chat-messages {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .chat-message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+        }
+        
+        .chat-message.user {
+            background: #e3f2fd;
+            margin-left: 20%;
+        }
+        
+        .chat-message.bot {
+            background: #f3e5f5;
+            margin-right: 20%;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .chat-input input {
+            flex: 1;
+        }
+        
+        .chat-input button {
+            width: auto;
+            padding: 0.75rem 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 AI 창업지원 매칭 시스템</h1>
+            <p>당신에게 딱 맞는 창업지원사업을 찾아드립니다</p>
+        </div>
+        
+        <div class="main">
+            <!-- 사이드바: 프로필 입력 -->
+            <div class="sidebar">
+                <h2 style="margin-bottom: 1.5rem;">👤 프로필 입력</h2>
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label>이름</label>
+                        <input type="text" id="name" value="김창업" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>나이</label>
+                        <input type="number" id="age" value="29" min="18" max="60" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>지역</label>
+                        <select id="region" required>
+                            <option>서울</option>
+                            <option>부산</option>
+                            <option>경기</option>
+                            <option>인천</option>
+                            <option>대전</option>
+                            <option>대구</option>
+                            <option>광주</option>
+                            <option>울산</option>
+                            <option>세종</option>
+                            <option>강원</option>
+                            <option>충북</option>
+                            <option>충남</option>
+                            <option>전북</option>
+                            <option>전남</option>
+                            <option>경북</option>
+                            <option>경남</option>
+                            <option>제주</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>창업단계</label>
+                        <select id="business_stage" required>
+                            <option>예비창업자</option>
+                            <option>3년이하</option>
+                            <option>7년이하</option>
+                            <option>10년이하</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>사업분야</label>
+                        <input type="text" id="business_field" value="카페·외식업" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>대상유형</label>
+                        <select id="target_type" required>
+                            <option>청년</option>
+                            <option>여성</option>
+                            <option>일반</option>
+                            <option>중장년</option>
+                            <option>예비창업자</option>
+                        </select>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="is_veteran">
+                        <label for="is_veteran">참전유공자</label>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="is_disabled">
+                        <label for="is_disabled">장애인</label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>추가 설명</label>
+                        <textarea id="additional_context" rows="3">카페 창업 준비 중</textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">🎯 매칭 시작</button>
+                </form>
+            </div>
+            
+            <!-- 메인 콘텐츠: 결과 표시 -->
+            <div class="content">
+                <div id="results">
+                    <div style="text-align: center; padding: 3rem; color: #6c757d;">
+                        <h2>👈 프로필을 입력하고 매칭을 시작하세요</h2>
+                        <p style="margin-top: 1rem;">AI가 당신에게 맞는 지원사업을 찾아드립니다</p>
+                    </div>
+                </div>
+                
+                <!-- 챗봇 영역 -->
+                <div id="chatSection" class="chat-container" style="display: none;">
+                    <h2>💬 AI 상담 챗봇</h2>
+                    <div id="chatMessages" class="chat-messages"></div>
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="질문을 입력하세요...">
+                        <button class="btn-primary" onclick="sendChat()">전송</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentProfile = null;
+        let chatHistory = [];
+        
+        // 프로필 제출
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            currentProfile = {
+                name: document.getElementById('name').value,
+                age: parseInt(document.getElementById('age').value),
+                region: document.getElementById('region').value,
+                business_stage: document.getElementById('business_stage').value,
+                business_field: document.getElementById('business_field').value,
+                target_type: document.getElementById('target_type').value,
+                is_veteran: document.getElementById('is_veteran').checked,
+                is_disabled: document.getElementById('is_disabled').checked,
+                additional_context: document.getElementById('additional_context').value
+            };
+            
+            // 로딩 표시
+            document.getElementById('results').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>매칭 중입니다... 잠시만 기다려주세요</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/match', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentProfile)
+                });
+                
+                const report = await response.json();
+                displayResults(report);
+                
+                // 챗봇 활성화
+                document.getElementById('chatSection').style.display = 'block';
+                
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: #dc3545;">
+                        <h2>❌ 오류 발생</h2>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        // 결과 표시
+        function displayResults(report) {
+            let html = '';
+            
+            // 통계
+            html += `
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3>${report.total_matches}</h3>
+                        <p>총 매칭</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${report.by_priority.HIGH || 0}</h3>
+                        <p>고우선순위</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${report.by_priority.MEDIUM || 0}</h3>
+                        <p>중우선순위</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${report.by_priority.LOW || 0}</h3>
+                        <p>저우선순위</p>
+                    </div>
+                </div>
+            `;
+            
+            // LLM 요약
+            if (report.llm_summary) {
+                html += `
+                    <div style="background: #e8f5e9; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">
+                        <strong>🧠 AI 분석:</strong> ${report.llm_summary}
+                    </div>
+                `;
+            }
+            
+            // 매칭 결과
+            html += '<h2>🏆 추천 지원사업</h2>';
+            report.recommendations.forEach(match => {
+                html += `
+                    <div class="match-card priority-${match.priority.toLowerCase()}">
+                        <h3>🏆 ${match.rank}위. ${match.title}</h3>
+                        <div class="match-meta">
+                            <span class="badge badge-score">📊 ${match.match_score.toFixed(1)}점</span>
+                            <span class="badge badge-type">📂 ${match.data_type}</span>
+                            <span class="badge badge-priority">🔥 ${match.priority}</span>
+                        </div>
+                        <p style="color: #666; margin-bottom: 0.5rem;">${match.summary.substring(0, 200)}...</p>
+                        <p style="color: #999; font-size: 0.9rem;">📅 마감: ${match.deadline}</p>
+                        <details style="margin-top: 1rem;">
+                            <summary style="cursor: pointer; font-weight: 600;">📋 매칭 이유 보기</summary>
+                            <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                                ${match.reasons.map(r => `<li>${r}</li>`).join('')}
+                            </ul>
+                        </details>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        // 채팅 전송
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const question = input.value.trim();
+            if (!question || !currentProfile) return;
+            
+            // 사용자 메시지 표시
+            addChatMessage('user', question);
+            input.value = '';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        profile: currentProfile,
+                        question: question,
+                        history: chatHistory
+                    })
+                });
+                
+                const data = await response.json();
+                addChatMessage('bot', data.answer);
+                
+                chatHistory.push({ user: question, bot: data.answer });
+                
+            } catch (error) {
+                addChatMessage('bot', '❌ 오류가 발생했습니다: ' + error.message);
+            }
+        }
+        
+        function addChatMessage(role, text) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${role}`;
+            messageDiv.textContent = text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // Enter로 채팅 전송
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChat();
+        });
+    </script>
+</body>
+</html>
