@@ -1,110 +1,260 @@
-"""
-의미 기반 매칭 에이전트
-"""
-from typing import List, Optional
+# agents/semantic_matcher.py
+
+from __future__ import annotations
+from typing import List, Optional, Dict, Any
+from datetime import date
+from dateutil import parser
+import numpy as np
+
 from agents.base import AgenticAgent
 from models.data import UserProfile, MatchResult
 from utils.text import clean_text
-from config.settings import Config
+
 
 class SemanticMatchingAgent(AgenticAgent):
-    """의미 기반 매칭 에이전트"""
-    
+    """
+    통합 임베딩 기반 의미 매칭 시스템
+    - RAGSystem.embed()를 사용 → SBERT / OpenAI / Simple 모두 지원
+    - cosine similarity 기반 의미 점수 계산
+    - 자동 threshold
+    - soft boost (지역/대상/단계)
+    - 중복 제거 (같은 공고 / 같은 링크)
+    """
+
     def __init__(self, rag_system: object, llm_client: Optional[object] = None):
         super().__init__("SemanticMatcher", llm_client)
-        self.rag = rag_system
-    
-    def match(self, profile: UserProfile, top_k: int = 20) -> List[MatchResult]:
-        """프로필 기반 매칭"""
-        query = self._profile_to_query(profile)
-        self.think("프로필 분석 및 쿼리 생성", action=f"Query: {query[:50]}...", confidence=0.9)
-        
-        # RAG 검색
-        retrieved = self.rag.retrieve(query, top_k=top_k)
-        self.think("RAG 검색 완료", result=f"{len(retrieved)}개 검색", confidence=0.95)
-        
-        matches: List[MatchResult] = []
-        
-        for doc, similarity in retrieved:
-            if similarity < Config.SIMILARITY_THRESHOLD:
+        self.rag = rag_system  # RAG embed() 사용
+
+
+    # -------------------------------------------
+    # Utility
+    # -------------------------------------------
+    @staticmethod
+    def _normalize(text: str) -> str:
+        return clean_text(text or "").replace(" ", "").lower()
+
+    @staticmethod
+    def _today() -> date:
+        return date.today()
+
+    @staticmethod
+    def _parse_date(value: str) -> Optional[date]:
+        if not value:
+            return None
+        try:
+            return parser.parse(str(value)).date()
+        except Exception:
+            return None
+
+    def _is_closed(self, metadata: Dict[str, Any]) -> bool:
+        """
+        마감된 공고인지 체크
+        - status 값이 'N', '마감', '종료' 등인 경우
+        - deadline 날짜가 오늘 이전인 경우
+        """
+        status = str(metadata.get("status", "")).strip()
+        if status in ("N", "마감", "종료", "접수마감", "마감완료"):
+            return True
+
+        deadline_str = (
+            metadata.get("deadline")
+            or metadata.get("confmdoc_expr_dt")
+            or ""
+        )
+        d = self._parse_date(deadline_str)
+        if d and d < self._today():
+            return True
+
+        return False
+
+
+    # -------------------------------------------
+    # 의미 유사도 (RAG embed → numpy)
+    # -------------------------------------------
+    def _semantic_similarity(self, text1: str, text2: str) -> float:
+        try:
+            v1 = self.rag.embed(text1)
+            v2 = self.rag.embed(text2)
+
+            v1 = v1 / (np.linalg.norm(v1) + 1e-9)
+            v2 = v2 / (np.linalg.norm(v2) + 1e-9)
+
+            return float(np.dot(v1, v2))
+        except Exception as e:
+            print("❌ similarity error:", e)
+            return 0.0
+
+
+    # -------------------------------------------
+    # 자동 threshold 계산
+    # -------------------------------------------
+    def _auto_threshold(self, scores: List[float]) -> float:
+        if not scores:
+            return 0.0
+
+        arr = np.array(scores, dtype=np.float32)
+        mean = float(arr.mean())
+        std = float(arr.std())
+
+        thr = mean - 0.35 * std
+        return max(thr, 0.05)  # 음수 방지
+
+
+    # -------------------------------------------
+    # Soft boost (지역/대상/단계)
+    # -------------------------------------------
+    def _profile_soft_boost(self, metadata: Dict[str, Any], profile: UserProfile):
+        boost = 1.0
+        reasons = []
+
+        # 지역
+        user_region = self._normalize(profile.region or "")
+        meta_region = self._normalize(
+            f"{metadata.get('region','')} {metadata.get('address','')} {metadata.get('supt_regin','')}"
+        )
+
+        if user_region and user_region in meta_region:
+            boost += 0.15
+            reasons.append("활동 지역과 공고 지역이 일치합니다.")
+
+        # 신청 대상
+        target_text = self._normalize(
+            f"{metadata.get('apply_target','')} {metadata.get('apply_target_desc','')}"
+        )
+        if profile.target_type and self._normalize(profile.target_type) in target_text:
+            boost += 0.10
+            reasons.append("신청 대상이 사용자 조건과 잘 맞습니다.")
+
+        # 창업 단계
+        startup_period = self._normalize(metadata.get("startup_period", ""))
+        if profile.business_stage and self._normalize(profile.business_stage) in startup_period:
+            boost += 0.08
+            reasons.append("창업 단계가 사용자와 일치합니다.")
+
+        return boost, reasons
+
+
+    # -------------------------------------------
+    # Main Matching
+    # -------------------------------------------
+    def match(
+        self,
+        profile: UserProfile,
+        top_k: int = 10,
+        exclude_closed: bool = False,
+        desired_data_types: Optional[List[str]] = None,
+    ) -> List[MatchResult]:
+
+        # 기본 검색 쿼리
+        query = (
+            (profile.business_field or "").strip()
+            or getattr(profile, "need", "").strip()
+            or "창업 지원사업"
+        )
+
+        # 1) RAG 검색
+        raw_hits = self.rag.search(
+            query=query,
+            top_k=top_k * 5,
+            filters={"type": {"$in": desired_data_types}} if desired_data_types else None,
+        )
+
+        candidates = []
+        score_list: List[float] = []
+
+        # 2) semantic similarity 계산
+        for hit in raw_hits:
+            doc = hit.get("document")
+            if not doc:
                 continue
-            
-            meta = doc.metadata
-            doc_region = clean_text(meta.get("region", "")).replace(" ", "")
-            user_region = clean_text(profile.region).replace(" ", "")
-            
-            # 지역 필터링
-            if user_region and doc_region:
-                if doc_region not in ["전국", "전국단위"] and user_region not in doc_region:
-                    continue
-            
-            match_score = similarity * 100.0
-            reasons = self._generate_reasons(doc, profile, similarity)
-            
+
+            metadata = doc.metadata or {}
+
+            # 마감된 공고 제외 옵션
+            if exclude_closed and self._is_closed(metadata):
+                continue
+
+            # 제목 + 내용 기반으로 의미 비교
+            text_blob = f"{doc.text} {metadata.get('title','')} {metadata.get('desc','')}"
+
+            sc = self._semantic_similarity(query, text_blob)
+            candidates.append((doc, metadata, sc))
+            score_list.append(sc)
+
+        # 후보가 하나도 없으면 바로 종료
+        if not candidates:
+            return []
+
+        # 3) threshold 계산
+        threshold = self._auto_threshold(score_list)
+        print("AUTO THRESHOLD =", threshold)
+
+        raw_results: List[MatchResult] = []
+
+        for doc, metadata, sc in candidates:
+            if sc < threshold:
+                continue
+
+            # boost 적용
+            boost, boost_reasons = self._profile_soft_boost(metadata, profile)
+            final_score = sc * boost
+
+            # priority
+            if final_score >= 0.70:
+                priority = "HIGH"
+            elif final_score >= 0.45:
+                priority = "MID"
+            else:
+                priority = "LOW"
+
+            # 접수기간, 링크 등 안전하게 꺼내기
+            apply_period = metadata.get("apply_period", "")
+            deadline = metadata.get("deadline", "")
+
             match = MatchResult(
-                id=doc.id,
-                title=meta.get('title', '제목없음'),
-                data_type=meta.get('type', 'unknown'),
-                match_score=match_score,
-                match_reasons=reasons,
+                id=str(doc.id),
+                title=metadata.get("title", doc.text[:50]),
+                data_type=metadata.get("type", ""),
+                region=metadata.get("region", ""),
+                field=metadata.get("field", ""),
+                deadline=deadline,
+                status=str(metadata.get("status", "")),
+                apply_period=apply_period,
+                priority=priority,
+                match_score=round(final_score * 100, 1),
+                score=final_score,
+                reasons=boost_reasons or ["사용자와 의미적으로 높은 관련성이 있습니다."],
+                extra={
+                    "semantic_score": sc,
+                    "threshold": threshold,
+                    "detail_url": metadata.get("detail_url", ""),
+                    "apply_url": metadata.get("apply_url", ""),
+                    "guide_url": metadata.get("guide_url", ""),
+                },
+                metadata=metadata,
                 warnings=[],
-                deadline=meta.get('deadline', ''),
-                detail_url=meta.get('detail_url', ''),
-                priority=self._get_priority(match_score),
-                summary=doc.text[:150],
-                raw_data=meta.get('raw', {}),
-                agent_reasoning=self.thoughts.copy()
             )
-            
-            matches.append(match)
-        
-        self.think("매칭 완료", result=f"{len(matches)}개", confidence=1.0)
-        return matches
-    
-    def _profile_to_query(self, profile: UserProfile) -> str:
-        """프로필을 검색 쿼리로 변환"""
-        parts = [
-            f"지역: {profile.region}",
-            f"창업단계: {profile.business_stage}",
-            f"사업분야: {profile.business_field}",
-            f"대상: {profile.target_type}",
-        ]
-        
-        if profile.is_veteran:
-            parts.append("참전유공자")
-        if profile.is_disabled:
-            parts.append("장애인")
-        if profile.additional_context:
-            parts.append(profile.additional_context)
-        
-        return " ".join(parts)
-    
-    def _generate_reasons(self, doc: object, profile: UserProfile, similarity: float) -> List[str]:
-        """매칭 이유 생성"""
-        reasons = [f"✓ 의미 유사도: {similarity:.1%}"]
-        
-        meta = doc.metadata
-        doc_region = clean_text(meta.get("region", "")).replace(" ", "")
-        user_region = clean_text(profile.region).replace(" ", "")
-        
-        if user_region and doc_region and user_region in doc_region:
-            reasons.append(f"✓ 지역 일치: {profile.region}")
-        
-        text_lower = doc.text.lower()
-        
-        if profile.business_field.lower() in text_lower:
-            reasons.append(f"✓ 분야 일치: {profile.business_field}")
-        
-        if profile.target_type.lower() in text_lower:
-            reasons.append(f"✓ 대상유형 일치: {profile.target_type}")
-        
-        return reasons
-    
-    def _get_priority(self, score: float) -> str:
-        """우선순위 계산"""
-        if score >= 85:
-            return "HIGH"
-        elif score >= 70:
-            return "MEDIUM"
-        else:
-            return "LOW"
+
+            raw_results.append(match)
+
+        # 4) 중복 제거 (같은 공고/같은 링크는 하나만 남기기)
+        unique: Dict[str, MatchResult] = {}
+        for m in raw_results:
+            md = m.metadata or {}
+            dtype = m.data_type
+
+            if dtype == "announcement":
+                key = md.get("pbanc_sn") or md.get("detail_url") or m.title
+            elif dtype == "business":
+                key = md.get("detail_url") or m.title
+            else:
+                key = f"{dtype}:{m.title}:{md.get('detail_url','')}"
+
+            if key not in unique or m.score > unique[key].score:
+                unique[key] = m
+
+        results = list(unique.values())
+
+        # 5) 정렬 후 최종 top_k 반환
+        results.sort(key=lambda x: x.score, reverse=True)
+        return results[:top_k]

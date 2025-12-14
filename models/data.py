@@ -1,9 +1,16 @@
 """
 데이터 모델 정의
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field as dc_field
 from typing import List, Dict, Optional, Any
 import numpy as np
+
+
+from dataclasses import dataclass, field
+from typing import List
+
+ 
+
 
 @dataclass
 class UserProfile:
@@ -18,7 +25,11 @@ class UserProfile:
     is_disabled: bool = False
     company_name: Optional[str] = None
     additional_context: str = ""
-    
+    # ✅ 여기 한 줄
+    desired_data_types: List[str] = field(
+        default_factory=lambda: ["announcement", "business"]
+    )
+
     def to_dict(self) -> Dict:
         return {
             'name': self.name,
@@ -30,8 +41,10 @@ class UserProfile:
             'is_veteran': self.is_veteran,
             'is_disabled': self.is_disabled,
             'company_name': self.company_name,
-            'additional_context': self.additional_context
+            'additional_context': self.additional_context,
+            'desired_data_types': self.desired_data_types,  # ✅ 잘 넣었음
         }
+
 
 @dataclass
 class Document:
@@ -40,6 +53,7 @@ class Document:
     text: str
     metadata: Dict
     embedding: Optional[np.ndarray] = None
+
 
 @dataclass
 class AgentThought:
@@ -51,18 +65,34 @@ class AgentThought:
     result: str
     confidence: float
 
+
+
+
+
 @dataclass
 class MatchResult:
-    """매칭 결과"""
     id: str
     title: str
     data_type: str
-    match_score: float
-    match_reasons: List[str]
-    warnings: List[str]
+    region: str
+    field: str
     deadline: str
-    detail_url: str
+    status: str
+    apply_period: str
     priority: str
-    summary: str
-    raw_data: Dict = field(default_factory=dict)
-    agent_reasoning: List[AgentThought] = field(default_factory=list)
+    match_score: float
+    score: float = 0.0
+    reasons: List[str] = field(default_factory=list)
+    extra: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    warnings: List[str] = field(default_factory=list)
+
+
+
+
+@dataclass
+class QuestionPlan:
+    """질문 분석 결과 (프롬프트 플래너용)"""
+    intents: List[str] = field(default_factory=list)       # ["RECOMMEND", "REQUIRED_DOCS", ...]
+    data_types: List[str] = field(default_factory=list)    # ["announcement", "business", ...]
+    answer_style: str = "auto"     

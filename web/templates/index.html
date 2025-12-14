@@ -261,10 +261,7 @@
             <div class="sidebar">
                 <h2 style="margin-bottom: 1.5rem;">👤 프로필 입력</h2>
                 <form id="profileForm">
-                    <div class="form-group">
-                        <label>이름</label>
-                        <input type="text" id="name" value="김창업" required>
-                    </div>
+                    <!-- 이름 입력 제거 -->
                     
                     <div class="form-group">
                         <label>나이</label>
@@ -291,6 +288,7 @@
                             <option>경북</option>
                             <option>경남</option>
                             <option>제주</option>
+                            <option>전국</option>
                         </select>
                     </div>
                     
@@ -364,13 +362,32 @@
     <script>
         let currentProfile = null;
         let chatHistory = [];
+        let latestReport = null;  // 필터 적용용
+
+        const typeLabelMap = {
+            "business": "통합공고(사업정보)",
+            "announcement": "지원사업 공고",
+            "lecture": "창업 교육/강좌",
+            "space": "창업공간",
+            "center": "창업센터",
+            "product": "인증 제품",
+            "corporate": "인증 기업",
+            "content": "자료실 콘텐츠",
+            "statistical": "통계 보고서",
+            "institution": "지원기관",
+        };
+
+        function getTypeLabel(type) {
+            return typeLabelMap[type] || type || "기타";
+        }
         
         // 프로필 제출
         document.getElementById('profileForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             currentProfile = {
-                name: document.getElementById('name').value,
+                // 이름은 UI에서 받지 않고 기본값 사용
+                name: "창업자",
                 age: parseInt(document.getElementById('age').value),
                 region: document.getElementById('region').value,
                 business_stage: document.getElementById('business_stage').value,
@@ -412,11 +429,25 @@
             }
         });
         
-        // 결과 표시
+        // 결과 표시 (상단 통계 + 필터 + 리스트)
         function displayResults(report) {
+            latestReport = report;
+
+            // NO_MATCH 처리
+            if (report.status && report.status === "NO_MATCH") {
+                document.getElementById('results').innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: #6c757d;">
+                        <h2>조건에 맞는 매칭 결과가 없습니다.</h2>
+                        <p>프로필 조건을 조금 넓혀서 다시 시도해 주세요.</p>
+                    </div>
+                `;
+                return;
+            }
+            
             let html = '';
             
             // 통계
+            const byPriority = report.by_priority || {};
             html += `
                 <div class="stats">
                     <div class="stat-card">
@@ -424,15 +455,15 @@
                         <p>총 매칭</p>
                     </div>
                     <div class="stat-card">
-                        <h3>${report.by_priority.HIGH || 0}</h3>
+                        <h3>${byPriority.HIGH || 0}</h3>
                         <p>고우선순위</p>
                     </div>
                     <div class="stat-card">
-                        <h3>${report.by_priority.MEDIUM || 0}</h3>
+                        <h3>${byPriority.MEDIUM || 0}</h3>
                         <p>중우선순위</p>
                     </div>
                     <div class="stat-card">
-                        <h3>${report.by_priority.LOW || 0}</h3>
+                        <h3>${byPriority.LOW || 0}</h3>
                         <p>저우선순위</p>
                     </div>
                 </div>
@@ -446,31 +477,86 @@
                     </div>
                 `;
             }
+
+            // 데이터 유형 필터 추가
+            const allTypesSet = new Set(
+                (report.recommendations || []).map(m => m.data_type || "기타")
+            );
+            const allTypes = Array.from(allTypesSet);
+
+            html += `
+                <div class="form-group" style="max-width: 300px; margin-bottom: 2rem;">
+                    <label>데이터 유형 필터</label>
+                    <select id="typeFilter">
+                        <option value="all">전체</option>
+                        ${allTypes.map(t => `
+                            <option value="${t}">${getTypeLabel(t)}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            `;
+
+            html += `
+                <h2>🏆 추천 지원사업</h2>
+                <div id="matchList"></div>
+            `;
             
-            // 매칭 결과
-            html += '<h2>🏆 추천 지원사업</h2>';
-            report.recommendations.forEach(match => {
-                html += `
+            document.getElementById('results').innerHTML = html;
+
+            // 필터 이벤트 및 초기 렌더
+            const filterSelect = document.getElementById('typeFilter');
+            if (filterSelect) {
+                filterSelect.addEventListener('change', () => renderMatchList());
+            }
+            renderMatchList();
+        }
+
+        // 필터 기준으로 매칭 리스트 렌더링
+        function renderMatchList() {
+            if (!latestReport) return;
+
+            const filterSelect = document.getElementById('typeFilter');
+            const selected = filterSelect ? filterSelect.value : 'all';
+
+            let recs = latestReport.recommendations || [];
+            if (selected !== 'all') {
+                recs = recs.filter(m => (m.data_type || "기타") === selected);
+            }
+
+            let listHtml = '';
+            recs.forEach(match => {
+                const typeLabel = getTypeLabel(match.data_type);
+
+                listHtml += `
                     <div class="match-card priority-${match.priority.toLowerCase()}">
                         <h3>🏆 ${match.rank}위. ${match.title}</h3>
                         <div class="match-meta">
                             <span class="badge badge-score">📊 ${match.match_score.toFixed(1)}점</span>
-                            <span class="badge badge-type">📂 ${match.data_type}</span>
+                            <span class="badge badge-type">📂 ${typeLabel}</span>
                             <span class="badge badge-priority">🔥 ${match.priority}</span>
                         </div>
-                        <p style="color: #666; margin-bottom: 0.5rem;">${match.summary.substring(0, 200)}...</p>
+                        <p style="color: #666; margin-bottom: 0.5rem;">
+                            ${match.summary.substring(0, 200)}...
+                        </p>
                         <p style="color: #999; font-size: 0.9rem;">📅 마감: ${match.deadline}</p>
                         <details style="margin-top: 1rem;">
                             <summary style="cursor: pointer; font-weight: 600;">📋 매칭 이유 보기</summary>
                             <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
-                                ${match.reasons.map(r => `<li>${r}</li>`).join('')}
+                                ${(match.reasons || []).map(r => `<li>${r}</li>`).join('')}
                             </ul>
                         </details>
                     </div>
                 `;
             });
-            
-            document.getElementById('results').innerHTML = html;
+
+            const matchListDiv = document.getElementById('matchList');
+            if (matchListDiv) {
+                matchListDiv.innerHTML = listHtml || `
+                    <p style="color:#6c757d; padding:1rem 0;">
+                        선택한 유형에 해당하는 결과가 없습니다.
+                    </p>
+                `;
+            }
         }
         
         // 채팅 전송

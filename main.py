@@ -10,7 +10,8 @@ load_dotenv()
 
 from config.settings import Config
 from models.data import UserProfile
-from core.orchestrator import AgenticOrchestrator
+from core.orchestrator import AgenticOrchestrator, run_with_auto_refresh
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -27,13 +28,19 @@ def main():
     parser.add_argument('--name', required=True, help='이름')
     parser.add_argument('--age', type=int, default=29, help='나이 (기본: 29)')
     parser.add_argument('--region', required=True, help='지역 (예: 서울, 부산)')
-    parser.add_argument('--stage', default='예비창업자', 
-                        choices=['예비창업자', '3년이하', '7년이하', '10년이하'],
-                        help='창업단계')
+    parser.add_argument(
+        '--stage',
+        default='예비창업자',
+        choices=['예비창업자', '3년이하', '7년이하', '10년이하'],
+        help='창업단계'
+    )
     parser.add_argument('--field', required=True, help='사업분야 (예: AI, 제조)')
-    parser.add_argument('--target', default='청년',
-                        choices=['청년', '여성', '일반', '중장년', '예비창업자'],
-                        help='대상유형')
+    parser.add_argument(
+        '--target',
+        default='청년',
+        choices=['청년', '여성', '일반', '중장년', '예비창업자'],
+        help='대상유형'
+    )
     
     # 선택 인자
     parser.add_argument('--veteran', action='store_true', help='참전유공자')
@@ -45,6 +52,19 @@ def main():
     parser.add_argument('--no-cache', action='store_true', help='캐시 사용 안 함')
     parser.add_argument('--output', help='결과 JSON 저장 경로')
     parser.add_argument('--verbose', action='store_true', help='상세 로그 출력')
+
+    # 🔄 자동 새로고침 관련 옵션 추가
+    parser.add_argument(
+        '--refresh-days',
+        type=int,
+        default=1,
+        help='데이터 자동 갱신 주기(일 기준, 기본: 1일)'
+    )
+    parser.add_argument(
+        '--no-auto-refresh',
+        action='store_true',
+        help='자동 새로고침 비활성화 (기존 run + --no-cache 방식만 사용)'
+    )
     
     args = parser.parse_args()
     
@@ -79,12 +99,24 @@ def main():
             service_key=Config.SERVICE_KEY,
             llm_api_key=Config.LLM_API_KEY
         )
-        
-        report = orchestrator.run(
-            profile,
-            top_n=args.top_n,
-            use_cache=not args.no_cache
-        )
+
+        # 🔄 여기 분기: 자동 새로고침 vs 기존 방식
+        if args.no_auto_refresh:
+            # 예전 방식: --no-cache 여부만 보고 run() 사용
+            report = orchestrator.run(
+                profile,
+                top_n=args.top_n,
+                use_cache=not args.no_cache
+            )
+        else:
+            # 새 방식: meta.json을 보고 refresh-days 기준으로
+            # 최근에 수집했으면 캐시 사용, 아니면 자동으로 새로 수집
+            report = run_with_auto_refresh(
+                orchestrator=orchestrator,
+                profile=profile,
+                top_n=args.top_n,
+                refresh_days=args.refresh_days
+            )
         
         # 결과 출력
         print(f"\n✅ 매칭 완료: {report['total_matches']}개 발견")
@@ -127,6 +159,7 @@ def main():
         return 1
     
     return 0
+
 
 if __name__ == "__main__":
     exit(main())

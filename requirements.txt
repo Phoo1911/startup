@@ -21,6 +21,22 @@ sentence-transformers>=2.2.0
 python-dotenv>=1.0.0
 openpyxl>=3.1.0
 
-# 개발 도구 (선택사항)
-pytest>=7.4.0
+
 black>=23.0.0
+
+# RAG & Embeddings
+sentence-transformers==2.3.1
+faiss-cpu==1.7.4  # Optional: for faster search
+
+# Web Interface
+streamlit==1.31.0
+
+# Data Processing
+pandas==2.0.3
+
+# Logging
+loguru==0.7.2
+
+# Testing (Optional)
+pytest==8.0.0
+pytest-asyncio==0.23.0

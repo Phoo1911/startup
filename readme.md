@@ -1,278 +1,345 @@
-# 🚀 AI 창업지원 매칭 시스템
+# 🤖 Agentic AI 기반 창업지원 매칭 시스템
 
-Agentic AI + RAG + LLM 기반 창업지원사업 추천 시스템
+## 🎯 프로젝트 개요
 
-## 📁 프로젝트 구조
+**자율적으로 판단하고 행동하는 Agentic AI**를 활용한 맞춤형 창업지원 추천 시스템입니다.
 
-```
-startup-matching-system/
-├── config/
-│   └── settings.py              # 설정 관리
-├── models/
-│   ├── data_models.py           # 데이터 클래스
-│   └── enums.py                 # Enum 정의
-├── agents/                      # AI 에이전트들
-│   ├── base_agent.py
-│   ├── data_collector.py
-│   ├── rag_builder.py
-│   ├── semantic_matcher.py
-│   ├── llm_reasoner.py
-│   ├── recommender.py
-│   └── chatbot.py
-├── core/
-│   ├── llm_client.py            # LLM 클라이언트
-│   ├── rag_system.py            # RAG 시스템
-│   └── orchestrator.py          # 전체 조율
-├── utils/
-│   ├── text_utils.py
-│   └── date_utils.py
-├── web/
-│   ├── streamlit_app.py         # Streamlit UI (Option 1)
-│   ├── fastapi_app.py           # FastAPI 서버 (Option 2)
-│   ├── templates/               # HTML 템플릿
-│   └── static/                  # CSS, JS
-├── cache/                       # 데이터 캐시
-├── reports/                     # 리포트 저장
-├── requirements.txt
-└── main.py                      # CLI 실행
-```
+### ✨ 주요 특징
 
-## 🔧 설치
+- 🧠 **Agentic AI**: 에이전트가 스스로 판단하고 도구를 선택
+- 🔧 **Tool System**: 검색, 필터링, 순위 매기기 등 독립적인 도구들
+- 💬 **대화형 챗봇**: 카카오톡 스타일 UI
+- 📊 **RAG 기반 검색**: 벡터 데이터베이스 활용
+- 🎨 **실시간 추천**: 사용자 프로필 맞춤형
 
-### 1. Python 환경 (3.9+)
+---
+
+## 📋 시스템 요구사항
+
+- Python 3.8+
+- 4GB+ RAM
+- 인터넷 연결 (API 호출용)
+
+---
+
+## 🚀 빠른 시작
+
+### 1. 설치
 
 ```bash
-# 가상환경 생성
+# 저장소 클론
+git clone <repository-url>
+cd startup-support-agentic
+
+# 가상환경 생성 (권장)
 python -m venv venv
-
-# 활성화 (Windows)
-venv\Scripts\activate
-
-# 활성화 (Mac/Linux)
-source venv/bin/activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # 패키지 설치
 pip install -r requirements.txt
 ```
 
-### 2. 환경변수 설정 (.env 파일)
+### 2. 환경 설정
+
+`.env` 파일 생성:
 
 ```bash
-# 필수
-KISED_SERVICE_KEY=your_service_key_here
-
-# LLM (선택사항)
-LLM_PROVIDER=openai
-OPENAI_API_KEY=your_openai_key_here
-LLM_MODEL=gpt-4o-mini
-
-# 기타
-AGENT_VERBOSE=false
-EMBEDDING_MODEL=sentence-transformers
+cp .env.example .env
 ```
 
-## 🚀 실행 방법
+`.env` 파일 편집:
 
-### Option 1: Streamlit (추천 - 빠른 프로토타입)
+```env
+# 필수
+KISED_SERVICE_KEY=your_kised_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+
+# 선택
+LLM_MODEL=gpt-4o-mini
+DATA_DAYS_RANGE=180
+CACHE_REFRESH_DAYS=1
+```
+
+### 3. 실행
+
+#### 웹 인터페이스 (Streamlit)
 
 ```bash
 streamlit run web/streamlit_app.py
 ```
 
-- 브라우저 자동 실행: http://localhost:8501
-- 장점: 설치 후 바로 사용 가능
-- 단점: 커스터마이징 제한
+브라우저에서 `http://localhost:8501` 접속
 
-### Option 2: FastAPI (프로덕션)
-
-```bash
-uvicorn web.fastapi_app:app --reload
-```
-
-- 접속: http://localhost:8000
-- API 문서: http://localhost:8000/docs
-- 장점: 완전한 커스터마이징, REST API
-- 단점: 프론트엔드 직접 구현 필요
-
-### Option 3: CLI
-
-```bash
-python main.py --name "김창업" --region "서울" --field "AI"
-```
-
-## 📊 주요 기능
-
-### 1. 프로필 기반 매칭
-- 나이, 지역, 사업분야, 창업단계 등 고려
-- AI 의미 분석으로 정확한 매칭
-- 우선순위 자동 계산
-
-### 2. RAG (검색증강생성)
-- 실시간 공공데이터 수집
-- Sentence-BERT 임베딩
-- 유사도 기반 검색
-
-### 3. LLM 추론 (선택)
-- 개인화된 추천 이유 설명
-- 챗봇 상담 기능
-- GPT/Claude 지원
-
-### 4. 데이터 소스
-- 통합공고 지원사업 정보
-- 지원사업 공고 정보
-- 창업에듀 강좌
-- 창업공간/센터
-- 주관기관 정보
-
-## 🎨 웹 UI 스크린샷
-
-### Streamlit
-- 간단한 사이드바 입력
-- 실시간 결과 표시
-- 인터랙티브 필터
-- 채팅 인터페이스
-
-### FastAPI
-- 모던한 반응형 디자인
-- REST API 엔드포인트
-- 커스텀 HTML/CSS/JS
-- 프로덕션 레벨
-
-## 📦 배포
-
-### Docker (추천)
-
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-# Streamlit
-CMD ["streamlit", "run", "web/streamlit_app.py", "--server.port", "8501"]
-
-# 또는 FastAPI
-# CMD ["uvicorn", "web.fastapi_app:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-```bash
-docker build -t startup-matcher .
-docker run -p 8501:8501 --env-file .env startup-matcher
-```
-
-### 클라우드 배포
-
-**Streamlit Cloud (무료)**
-1. GitHub에 푸시
-2. streamlit.io/cloud 접속
-3. 레포지토리 연결
-4. 자동 배포
-
-**AWS/GCP/Azure**
-- Docker 컨테이너로 배포
-- 또는 PaaS (Heroku, Railway 등)
-
-## 🔍 API 사용 예시
-
-### 매칭 요청
-
-```bash
-curl -X POST "http://localhost:8000/api/match" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "김창업",
-    "age": 29,
-    "region": "서울",
-    "business_stage": "예비창업자",
-    "business_field": "AI",
-    "target_type": "청년"
-  }'
-```
-
-### 챗봇 질문
-
-```bash
-curl -X POST "http://localhost:8000/api/chat" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "profile": {...},
-    "question": "1위 사업 신청 자격이 어떻게 되나요?",
-    "history": []
-  }'
-```
-
-## 🧪 테스트
+#### CLI 테스트
 
 ```bash
 # 전체 테스트
-pytest
+python main.py all
 
-# 특정 모듈
-pytest tests/test_agents.py
+# 추천 시스템만
+python main.py recommend
 
-# 커버리지
-pytest --cov=agents --cov-report=html
+# 챗봇만
+python main.py chat
+
+# 대화형 모드
+python main.py interactive
 ```
 
-## 📈 성능 최적화
+---
 
-1. **캐싱**: 첫 실행 후 데이터 재사용
-2. **임베딩**: Sentence-BERT로 빠른 검색
-3. **비동기**: FastAPI 비동기 처리
-4. **배치**: 여러 프로필 한 번에 처리
+## 🏗️ 아키텍처
 
-## 🛠️ 커스터마이징
+### Agentic AI 작동 방식
 
-### 새 데이터 소스 추가
+```
+User Input
+    ↓
+[Orchestrator]
+    ↓
+[Agentic Agent]
+    ↓
+Reasoning Loop:
+    1. 상황 분석 (LLM)
+    2. 도구 선택
+    3. 도구 실행
+    4. 결과 해석
+    5. 다음 행동 결정
+    ↓
+    반복 or 종료
+    ↓
+Final Result
+```
+
+### 도구 시스템
+
+| 도구 | 설명 | 사용 시점 |
+|------|------|-----------|
+| `search_database` | 벡터 검색 | 정보가 필요할 때 |
+| `filter_results` | 조건 필터링 | 검색 결과가 많을 때 |
+| `rank_results` | 순위 매기기 | 우선순위 결정 필요 시 |
+| `analyze_match` | 적합성 분석 | 상세 이유 필요 시 |
+| `summarize_recommendations` | 전체 요약 | 최종 결과 생성 시 |
+
+---
+
+## 📁 프로젝트 구조
+
+```
+startup-support-agentic/
+├── config/              # 설정
+│   └── settings.py
+├── core/                # 핵심 시스템
+│   ├── orchestrator.py  # Agentic Orchestrator
+│   ├── tools.py         # Tool System
+│   ├── rag_system.py    # RAG Engine
+│   └── llm_client.py    # LLM Client
+├── agents/              # 에이전트들
+│   ├── agentic_base.py  # Agentic Agent Base
+│   ├── data_collector.py
+│   └── rag_builder.py
+├── models/              # 데이터 모델
+├── utils/               # 유틸리티
+└── web/                 # 웹 인터페이스
+    └── streamlit_app.py
+```
+
+---
+
+## 🔧 주요 기능
+
+### 1. 맞춤형 추천
 
 ```python
-# agents/data_collector.py에 엔드포인트 추가
-class APIEndpoint(Enum):
-    NEW_SOURCE = "/path/to/new/api"
+from core.orchestrator import AgenticOrchestrator
+from models.data import UserProfile
 
-# collect_all() 메서드에 추가
-data['new_source'] = self._fetch_endpoint(APIEndpoint.NEW_SOURCE, max_pages)
+orchestrator = AgenticOrchestrator(
+    service_key="your_key",
+    llm_api_key="your_key"
+)
+
+profile = UserProfile(
+    age=29,
+    region="서울",
+    business_stage="예비창업자",
+    business_field="AI",
+    target_type="청년"
+)
+
+report = orchestrator.run(profile, top_n=10)
 ```
 
-### 매칭 로직 수정
+### 2. 대화형 챗봇
 
 ```python
-# agents/semantic_matcher.py
-def match(self, profile: UserProfile, top_k: int = 20):
-    # 커스텀 로직 추가
-    ...
+answer = orchestrator.chat(
+    profile=profile,
+    question="서울 청년 지원 프로그램 알려줘",
+    category="지원사업/공고"
+)
 ```
 
-## 🐛 트러블슈팅
+---
+
+## 🎨 웹 인터페이스
+
+### 카카오톡 스타일 챗봇
+
+- 노란색 말풍선 (사용자)
+- 흰색 말풍선 (봇)
+- 실시간 타임스탬프
+- 빠른 답변 버튼
+- 대화 히스토리
+
+### 맞춤형 추천
+
+- 프로필 기반 필터링
+- 마감 공고 자동 제외
+- 실시간 점수 계산
+- 상세 정보 링크
+
+---
+
+## 🔍 데이터 소스
+
+### K-Startup API
+
+- 지원사업 공고
+- 통합 사업 정보
+- 자료실 콘텐츠
+- 통계자료
+
+### 창업에듀 API
+
+- 온라인 강좌
+- 교육 프로그램
+
+### 창업공간 API
+
+- 창업공간 정보
+- 센터 정보
+
+### 창업기업 확인서 API
+
+- 인증 제품
+- 인증 기업
+
+---
+
+## ⚙️ 설정 옵션
+
+### 환경 변수
+
+```env
+# API Keys
+KISED_SERVICE_KEY=           # K-Startup API 키
+OPENAI_API_KEY=              # OpenAI API 키
+
+# LLM Settings
+LLM_PROVIDER=openai          # openai 또는 anthropic
+LLM_MODEL=gpt-4o-mini        # 사용할 모델
+
+# Data Collection
+DATA_DAYS_RANGE=180          # 공고 수집 범위 (일)
+MAX_PAGES_PER_ENDPOINT=5     # 페이지당 수집량
+
+# Cache
+CACHE_REFRESH_DAYS=1         # 캐시 갱신 주기
+
+# Web
+WEB_PORT=8501                # Streamlit 포트
+
+# Logging
+AGENT_VERBOSE=false          # 에이전트 로그 출력
+LOG_LEVEL=INFO               # 로그 레벨
+```
+
+---
+
+## 🧪 테스트
+
+### 단위 테스트
+
+```bash
+pytest tests/
+```
+
+### 통합 테스트
+
+```bash
+python main.py all
+```
+
+---
+
+## 🐛 문제 해결
 
 ### API 키 오류
-```
-ValueError: KISED_SERVICE_KEY 환경변수가 설정되지 않았습니다
-```
-→ `.env` 파일에 `KISED_SERVICE_KEY` 추가
 
-### 임베딩 오류
 ```
-ModuleNotFoundError: No module named 'sentence_transformers'
+❌ 설정 오류: KISED_SERVICE_KEY 환경변수가 설정되지 않았습니다
 ```
-→ `pip install sentence-transformers`
 
-### 포트 충돌
+**해결**: `.env` 파일에 API 키 추가
+
+### 메모리 부족
+
 ```
-Error: Address already in use
+❌ MemoryError: Unable to allocate array
 ```
-→ 다른 포트 사용: `streamlit run --server.port 8502`
+
+**해결**: `MAX_PAGES_PER_ENDPOINT` 값 줄이기
+
+### LLM 오류
+
+```
+❌ LLM 오류: rate_limit_exceeded
+```
+
+**해결**: API 요청 제한 확인, 잠시 후 재시도
+
+---
+
+## 📊 성능 최적화
+
+### 캐시 활용
+
+- RAG 인덱스: 1일 캐시
+- 원시 데이터: 1일 캐시
+- 자동 갱신
+
+### 메모리 관리
+
+- 문서 청킹
+- 임베딩 배치 처리
+- 가비지 컬렉션
+
+---
+
+## 🔐 보안
+
+- API 키는 환경변수로 관리
+- `.env` 파일은 `.gitignore`에 추가
+- 사용자 데이터 로컬 저장
+
+---
 
 ## 📝 라이선스
 
 MIT License
 
+---
+
 ## 👥 기여
 
-Pull Request 환영합니다!
+1. Fork the repo
+2. Create feature branch (`git checkout -b feature/amazing`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing`)
+5. Open Pull Request
+
+---
 
 ## 📧 문의
 
@@ -281,4 +348,13 @@ Pull Request 환영합니다!
 
 ---
 
-Made with ❤️ by AI Agents
+## 🙏 감사의 말
+
+- K-Startup Open API
+- OpenAI
+- Streamlit
+- Sentence Transformers
+
+---
+
+**Made with ❤️ by Agentic AI Team**

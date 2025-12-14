@@ -1,377 +1,350 @@
-# 🚀 설치 및 실행 가이드
+# 🚀 Agentic AI 시스템 설치 및 실행 가이드
 
-## 📋 목차
-1. [사전 준비](#사전-준비)
-2. [프로젝트 구조 생성](#프로젝트-구조-생성)
-3. [설치 방법](#설치-방법)
-4. [실행 방법](#실행-방법)
-5. [문제 해결](#문제-해결)
+## 📝 목차
 
----
-
-## 사전 준비
-
-### 필수 요구사항
-- **Python 3.9 이상**
-- **K-Startup API 키** ([신청 링크](https://www.data.go.kr))
-
-### 선택사항
-- OpenAI API 키 (LLM 기능 사용 시)
-- Docker (컨테이너 실행 시)
+1. [사전 준비](#1-사전-준비)
+2. [설치 과정](#2-설치-과정)
+3. [API 키 발급](#3-api-키-발급)
+4. [첫 실행](#4-첫-실행)
+5. [문제 해결](#5-문제-해결)
 
 ---
 
-## 프로젝트 구조 생성
+## 1. 사전 준비
 
-### 1. 폴더 구조 만들기
+### 필수 소프트웨어
 
 ```bash
-mkdir startup-matching-system
-cd startup-matching-system
+# Python 버전 확인
+python --version  # 3.8 이상 필요
 
-# 하위 폴더 생성
-mkdir -p config models agents core utils web/templates web/static cache reports tests
+# pip 업그레이드
+pip install --upgrade pip
 ```
 
-### 2. 파일 배치
+### API 키 필요
 
-아티팩트에서 제공된 코드를 다음과 같이 배치:
-
-```
-startup-matching-system/
-├── config/
-│   ├── __init__.py
-│   └── settings.py
-├── models/
-│   ├── __init__.py
-│   ├── data_models.py
-│   └── enums.py
-├── agents/
-│   ├── __init__.py
-│   ├── base_agent.py
-│   ├── data_collector.py
-│   ├── rag_builder.py
-│   ├── semantic_matcher.py
-│   ├── llm_reasoner.py
-│   ├── recommender.py
-│   └── chatbot.py
-├── core/
-│   ├── __init__.py
-│   ├── llm_client.py
-│   ├── rag_system.py
-│   └── orchestrator.py
-├── utils/
-│   ├── __init__.py
-│   ├── text_utils.py
-│   └── date_utils.py
-├── web/
-│   ├── __init__.py
-│   ├── streamlit_app.py
-│   ├── fastapi_app.py
-│   └── templates/
-│       └── index.html
-├── .env
-├── .gitignore
-├── requirements.txt
-├── main.py
-├── Dockerfile
-├── docker-compose.yml
-└── README.md
-```
+1. **K-Startup API 키** (필수)
+   - https://www.data.go.kr
+   
+2. **OpenAI API 키** (필수)
+   - https://platform.openai.com/api-keys
 
 ---
 
-## 설치 방법
+## 2. 설치 과정
 
-### Option 1: 로컬 설치 (권장)
+### Step 1: 프로젝트 다운로드
 
 ```bash
-# 1. 가상환경 생성
-python -m venv venv
+# 방법 1: Git Clone (권장)
+git clone <repository-url>
+cd startup-support-agentic
 
-# 2. 가상환경 활성화
+# 방법 2: ZIP 다운로드
+# GitHub에서 "Code" → "Download ZIP" → 압축 해제
+```
+
+### Step 2: 가상환경 생성
+
+```bash
 # Windows
+python -m venv venv
 venv\Scripts\activate
 
 # Mac/Linux
+python3 -m venv venv
 source venv/bin/activate
+```
 
-# 3. 패키지 설치
+가상환경이 활성화되면 프롬프트 앞에 `(venv)` 표시됨
+
+### Step 3: 패키지 설치
+
+```bash
 pip install -r requirements.txt
 ```
 
-### Option 2: Docker 설치
+**예상 시간**: 3-5분
+
+### Step 4: 디렉토리 생성
 
 ```bash
-# Docker 이미지 빌드
-docker-compose build
+# Windows
+mkdir cache logs reports
 
-# 실행 (Streamlit)
-docker-compose up streamlit
-
-# 실행 (FastAPI)
-docker-compose --profile api up fastapi
+# Mac/Linux
+mkdir -p cache logs reports
 ```
 
 ---
 
-## 환경변수 설정
+## 3. API 키 발급
 
-### 1. .env 파일 생성
+### 3-1. K-Startup API 키
+
+1. https://www.data.go.kr 접속
+2. 회원가입 / 로그인
+3. "데이터 찾기" → "중소벤처기업진흥공단" 검색
+4. 활용신청 클릭
+5. 발급받은 키 복사
+
+### 3-2. OpenAI API 키
+
+1. https://platform.openai.com 접속
+2. 로그인 / 회원가입
+3. "API keys" 메뉴
+4. "Create new secret key" 클릭
+5. 키 복사 (다시 볼 수 없으니 안전하게 보관!)
+
+### 3-3. .env 파일 생성
 
 ```bash
+# .env.example을 복사
 cp .env.example .env
+
+# Windows
+copy .env.example .env
 ```
 
-### 2. .env 파일 편집
+`.env` 파일 편집:
 
-```bash
-# 필수
-KISED_SERVICE_KEY=your_api_key_here
+```env
+# 필수 - 발급받은 키를 붙여넣기
+KISED_SERVICE_KEY=your_actual_kised_key_here
+OPENAI_API_KEY=sk-your_actual_openai_key_here
 
-# LLM 사용 시 (선택)
+# 선택 - 기본값 사용 가능
 LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-...
 LLM_MODEL=gpt-4o-mini
-
-# 또는 LLM 비활성화
-LLM_PROVIDER=
+DATA_DAYS_RANGE=180
+CACHE_REFRESH_DAYS=1
+AGENT_VERBOSE=false
 ```
+
+**⚠️ 주의**: 
+- API 키는 절대 공개하지 마세요
+- `.env` 파일은 Git에 커밋하지 마세요
 
 ---
 
-## 실행 방법
+## 4. 첫 실행
 
-### 🎨 Streamlit 웹 UI (가장 쉬움)
+### 4-1. 설정 확인
+
+```bash
+python main.py recommend
+```
+
+**예상 출력**:
+```
+🤖 Agentic AI 시스템 초기화 중...
+✅ LLM 클라이언트 준비 완료
+✅ RAG 시스템 준비 완료
+✅ 5개 도구 등록 완료
+...
+```
+
+**오류가 나면**: [5. 문제 해결](#5-문제-해결) 참고
+
+### 4-2. 웹 인터페이스 실행
 
 ```bash
 streamlit run web/streamlit_app.py
 ```
 
-**접속**: http://localhost:8501
+브라우저가 자동으로 열리면서 `http://localhost:8501` 접속
 
-**특징**:
-- ✅ 가장 빠른 시작
-- ✅ 인터랙티브 UI
-- ✅ 실시간 결과 확인
-- ❌ 커스터마이징 제한
+**수동 접속**: 브라우저에서 위 주소 직접 입력
 
----
+### 4-3. 첫 추천 받기
 
-### ⚙️ FastAPI 웹 서버 (프로덕션)
+1. 왼쪽 사이드바에서 프로필 입력
+   - 나이: 29
+   - 지역: 서울
+   - 창업단계: 예비창업자
+   - 사업분야: AI
+   
+2. "✅ 프로필 저장" 클릭
 
-```bash
-uvicorn web.fastapi_app:app --reload
-```
+3. "📊 맞춤추천" 탭으로 이동
 
-**접속**: 
-- 웹: http://localhost:8000
-- API 문서: http://localhost:8000/docs
+4. "🎯 추천 받기" 클릭
 
-**특징**:
-- ✅ REST API 제공
-- ✅ 완전한 커스터마이징
-- ✅ 프로덕션 레벨
-- ❌ 프론트엔드 직접 구현 필요
+5. 약 30초 후 결과 확인
 
----
+### 4-4. 챗봇 사용하기
 
-### 💻 CLI 실행
+1. "💬 상담챗봇" 탭으로 이동
 
-```bash
-# 기본 실행
-python main.py --name "김창업" --region "서울" --field "AI"
+2. 빠른 질문 버튼 클릭하거나
 
-# 자세한 옵션
-python main.py \
-  --name "이스타트" \
-  --age 35 \
-  --region "부산" \
-  --stage "3년이하" \
-  --field "제조" \
-  --target "여성" \
-  --context "친환경 제품 개발" \
-  --top-n 10 \
-  --verbose
-```
+3. 직접 질문 입력:
+   - "서울 청년 지원 프로그램 알려줘"
+   - "AI 창업 교육 뭐 있어?"
+   
+4. "전송 📤" 클릭
 
 ---
 
-## 주요 기능 테스트
+## 5. 문제 해결
 
-### 1. 데이터 수집 테스트
-
-```python
-from core.orchestrator import AgenticOrchestrator
-from models.data_models import UserProfile
-
-orchestrator = AgenticOrchestrator(
-    service_key="YOUR_KEY",
-    llm_api_key="YOUR_LLM_KEY"  # 선택사항
-)
-
-profile = UserProfile(
-    name="테스트",
-    age=29,
-    region="서울",
-    business_stage="예비창업자",
-    business_field="AI",
-    target_type="청년"
-)
-
-report = orchestrator.run(profile, top_n=5, use_cache=False)
-print(f"총 {report['total_matches']}개 매칭")
-```
-
-### 2. 챗봇 테스트
-
-```python
-question = "AI 관련 지원사업 중에서 마감이 임박한 게 있나요?"
-answer = orchestrator.chatbot.chat(profile, question)
-print(answer)
-```
-
----
-
-## 문제 해결
-
-### ❌ ModuleNotFoundError
-
-```bash
-# 패키지 재설치
-pip install -r requirements.txt --upgrade
-```
-
-### ❌ API 키 오류
+### 문제 1: API 키 오류
 
 ```
-ValueError: KISED_SERVICE_KEY 환경변수가 설정되지 않았습니다
+❌ ValueError: KISED_SERVICE_KEY 환경변수가 설정되지 않았습니다
 ```
 
-**해결**: `.env` 파일에 API 키 추가
+**해결**:
+1. `.env` 파일이 있는지 확인
+2. 파일 내용 확인 (키가 올바른지)
+3. 따옴표 없이 입력했는지 확인
 
-### ❌ 포트 충돌
+```env
+# ❌ 잘못된 예
+KISED_SERVICE_KEY="your_key"
+
+# ✅ 올바른 예
+KISED_SERVICE_KEY=your_key
+```
+
+### 문제 2: 패키지 설치 오류
 
 ```
-Error: Address already in use
-```
-
-**해결**: 다른 포트 사용
-```bash
-streamlit run web/streamlit_app.py --server.port 8502
-uvicorn web.fastapi_app:app --port 8001
-```
-
-### ❌ 임베딩 모델 오류
-
-```
-ModuleNotFoundError: No module named 'sentence_transformers'
+ERROR: Could not find a version that satisfies the requirement
 ```
 
 **해결**:
 ```bash
+# pip 업그레이드
+pip install --upgrade pip
+
+# 개별 설치 시도
+pip install streamlit
 pip install sentence-transformers
+pip install openai
 ```
 
-또는 `.env`에서:
-```bash
-EMBEDDING_MODEL=simple
-```
-
-### ❌ LLM 오류
+### 문제 3: 메모리 부족
 
 ```
-[LLM 오류: ...]
+MemoryError: Unable to allocate array
 ```
 
 **해결**:
-1. API 키 확인
-2. LLM 비활성화하고 RAG만 사용:
-```bash
-LLM_PROVIDER=
+`.env` 파일 수정:
+```env
+MAX_PAGES_PER_ENDPOINT=2  # 3에서 2로 줄이기
 ```
+
+### 문제 4: 포트 충돌
+
+```
+Port 8501 is already in use
+```
+
+**해결**:
+```bash
+# 다른 포트 사용
+streamlit run web/streamlit_app.py --server.port 8502
+```
+
+### 문제 5: Sentence Transformers 설치 오류
+
+```bash
+# CPU 버전 설치
+pip install sentence-transformers --no-deps
+pip install transformers torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+```
+
+### 문제 6: 인코딩 오류 (Windows)
+
+```
+UnicodeDecodeError: 'cp949' codec can't decode
+```
+
+**해결**:
+```bash
+# PowerShell에서 실행
+$env:PYTHONIOENCODING="utf-8"
+streamlit run web/streamlit_app.py
+```
+
+### 문제 7: 데이터 수집 실패
+
+```
+⚠ HTTP 500: Internal Server Error
+```
+
+**해결**:
+1. API 키가 유효한지 확인
+2. 활용신청 승인 확인
+3. 잠시 후 재시도
 
 ---
 
-## 성능 최적화
+## 6. 성능 최적화 팁
 
-### 1. 캐시 활성화
+### 첫 실행이 느릴 때
 
-```python
-# 첫 실행 (느림)
-report = orchestrator.run(profile, use_cache=False)
+첫 실행 시 다음 작업이 진행됩니다:
+- Sentence Transformers 모델 다운로드 (~500MB)
+- API 데이터 수집
+- RAG 인덱스 구축
 
-# 이후 실행 (빠름)
-report = orchestrator.run(profile, use_cache=True)
-```
+**예상 시간**: 3-10분
 
-### 2. 자동 새로고침
+이후 실행은 캐시를 사용하여 빠릅니다 (5-10초).
 
-```python
-from core.orchestrator import run_with_auto_refresh
-
-# 하루에 한 번만 새로 수집
-report = run_with_auto_refresh(
-    orchestrator, 
-    profile, 
-    top_n=10,
-    refresh_days=1  # 1일마다 갱신
-)
-```
-
-### 3. 임베딩 모델 선택
+### 캐시 수동 삭제
 
 ```bash
-# 빠르지만 정확도 낮음
-EMBEDDING_MODEL=simple
+# Windows
+rmdir /s cache
 
-# 느리지만 정확도 높음
-EMBEDDING_MODEL=sentence-transformers
+# Mac/Linux
+rm -rf cache
 ```
+
+다음 실행 시 자동으로 재생성됩니다.
 
 ---
 
-## 배포
+## 7. 다음 단계
 
-### Streamlit Cloud (무료, 추천)
-
-1. GitHub에 푸시
-2. https://streamlit.io/cloud 접속
-3. 레포지토리 연결
-4. Secrets에 환경변수 추가
-5. 자동 배포
-
-### Docker
+### CLI 테스트
 
 ```bash
-# 빌드
-docker build -t startup-matcher .
+# 전체 테스트
+python main.py all
 
-# 실행
-docker run -p 8501:8501 --env-file .env startup-matcher
+# 대화형 모드
+python main.py interactive
 ```
 
-### AWS/GCP/Azure
+### 코드 탐색
 
-```bash
-# 예: AWS EC2
-ssh your-server
-git clone your-repo
-cd startup-matching-system
-pip install -r requirements.txt
-streamlit run web/streamlit_app.py --server.port 80
-```
+1. `core/tools.py` - 도구 시스템
+2. `agents/agentic_base.py` - 에이전트 로직
+3. `web/streamlit_app.py` - UI 커스터마이징
+
+### 설정 조정
+
+`.env` 파일에서:
+- `AGENT_VERBOSE=true` - 상세 로그 보기
+- `DATA_DAYS_RANGE=90` - 더 빠른 수집
+- `LLM_MODEL=gpt-4` - 더 나은 품질 (비용↑)
 
 ---
 
-## 다음 단계
+## 8. 추가 자원
 
-1. ✅ 시스템 설치 및 실행
-2. 📊 샘플 프로필로 테스트
-3. 🎨 웹 UI 커스터마이징
-4. 🔧 추가 데이터 소스 연동
-5. 🚀 프로덕션 배포
+- 📖 [README.md](README.md) - 전체 문서
+- 🐛 [GitHub Issues](issues-url) - 버그 리포트
+- 💬 [Discussions](discussions-url) - 질문/토론
 
 ---
 
-궁금한 점이 있으면 Issues에 올려주세요! 🙋‍♂️
+**설치 완료를 축하합니다! 🎉**
+
+문제가 계속되면 이슈를 등록해주세요.
