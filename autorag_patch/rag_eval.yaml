@@ -1,0 +1,31 @@
+node_lines:
+  - node_line_name: "retrieve_node"
+    nodes:
+      - node_type: "retrieval"
+        strategy:
+          metrics:
+            - retrieval_f1
+            - retrieval_recall
+            - retrieval_precision
+        top_k: 10
+        modules:
+          - module_type: "vectordb"
+            embedding_model: "BM-K/KoSimCSE-roberta-multitask"
+
+  - node_line_name: "prompt_node"
+    nodes:
+      - node_type: "prompt_maker"
+        strategy:
+          metrics:
+            - bleu
+            - meteor
+        modules:
+          - module_type: "fstring"
+            prompt: |
+              다음 문서를 참고하여 질문에 답변하세요.
+
+              문서: {retrieved_contents}
+
+              질문: {query}
+
+              답변:

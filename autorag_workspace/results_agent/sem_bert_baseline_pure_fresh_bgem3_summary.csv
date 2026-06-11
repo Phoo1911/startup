@@ -1,0 +1,2 @@
+Approach,Semantic Similarity,BERTScore Precision,BERTScore Recall,BERTScore F1
+Standard RAG,0.7813,0.8250,0.8928,0.8562

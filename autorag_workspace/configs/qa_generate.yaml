@@ -1,0 +1,11 @@
+qa_generation:
+  question_generation:
+    method: simple
+    num_questions_per_doc: 1
+
+  answer_generation:
+    method: extractive
+
+data:
+  corpus_path: autorag_workspace/qa/corpus_for_eval.parquet
+  output_path: autorag_workspace/qa/qa_from_eval_corpus.parquet

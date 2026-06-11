@@ -1,0 +1,56 @@
+# AutoRAG 임베딩 벤치마크 (Collection name 수정)
+
+vectordb:
+  - name: vectordb_e5
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db/e5
+    embedding_batch: 8   # 모델 크기 커서 더 작게
+    collection_name: e5_large_collection
+    embedding_model:
+      - type: huggingface
+        model_name: intfloat/multilingual-e5-large-instruct
+
+  - name: vectordb_bgem3
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db/bgem3
+    embedding_batch: 16
+    collection_name: bgem3_collection
+    embedding_model:
+      - type: huggingface
+        model_name: BAAI/bge-m3
+
+node_lines:
+  - node_line_name: retrieve_node_line
+    nodes:
+      # Lexical Retrieval
+      - node_type: lexical_retrieval
+        strategy:
+          metrics:
+            - retrieval_f1
+            - retrieval_recall
+            - retrieval_precision
+            - retrieval_ndcg
+            - retrieval_map
+            - retrieval_mrr
+        top_k: 5
+        modules:
+          - module_type: bm25
+      
+      # Semantic Retrieval
+      - node_type: semantic_retrieval
+        strategy:
+          metrics:
+            - retrieval_f1
+            - retrieval_recall
+            - retrieval_precision
+            - retrieval_ndcg
+            - retrieval_map
+            - retrieval_mrr
+        top_k: 5
+        modules:
+          - module_type: vectordb
+            vectordb: vectordb_e5
+          - module_type: vectordb
+            vectordb: vectordb_bgem3

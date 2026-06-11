@@ -1,0 +1,104 @@
+# AutoRAG 임베딩 벤치마크 (Collection name 수정)
+
+vectordb:
+  - name: vectordb_kosroberta  # 3자 이상으로 수정
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db_fresh_v8/kosroberta
+    # GPU OOM 방지용으로 배치 축소 (GPU 선택은 CUDA_VISIBLE_DEVICES로 설정)
+    embedding_batch: 16
+    collection_name: kosroberta_collection_fresh_v8  # 3자 이상
+    embedding_model:
+      - type: huggingface
+        model_name: jhgan/ko-sroberta-multitask
+
+  - name: vectordb_kosimcse
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db_fresh_v8/kosimcse
+    embedding_batch: 16
+    collection_name: kosimcse_collection_fresh_v8
+    embedding_model:
+      - type: huggingface
+        model_name: BM-K/KoSimCSE-roberta
+
+  - name: vectordb_mpnet
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db_fresh_v8/mpnet
+    embedding_batch: 16
+    collection_name: mpnet_collection_fresh_v8
+    embedding_model:
+      - type: huggingface
+        model_name: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+
+  - name: vectordb_minilm
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db_fresh_v8/minilm
+    embedding_batch: 16
+    collection_name: minilm_collection_fresh_v8
+    embedding_model:
+      - type: huggingface
+        model_name: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+
+  - name: vectordb_e5
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db_fresh_v8/e5
+    embedding_batch: 8   # 모델 크기 커서 더 작게
+    collection_name: e5_large_collection_fresh_v8
+    embedding_model:
+      - type: huggingface
+        model_name: intfloat/multilingual-e5-large-instruct
+
+  - name: vectordb_bgem3
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db_fresh_v8/bgem3
+    embedding_batch: 16
+    collection_name: bgem3_collection_fresh_v8
+    embedding_model:
+      - type: huggingface
+        model_name: BAAI/bge-m3
+
+node_lines:
+  - node_line_name: retrieve_node_line
+    nodes:
+      # Lexical Retrieval
+      - node_type: lexical_retrieval
+        strategy:
+          metrics:
+            - retrieval_f1
+            - retrieval_recall
+            - retrieval_precision
+            - retrieval_ndcg
+            - retrieval_map
+            - retrieval_mrr
+        top_k: 20
+        modules:
+          - module_type: bm25
+      
+      - node_type: semantic_retrieval
+        strategy:
+          metrics:
+            - retrieval_f1
+            - retrieval_recall
+            - retrieval_precision
+            - retrieval_ndcg
+            - retrieval_map
+            - retrieval_mrr
+        top_k: 20
+        modules:
+          - module_type: vectordb
+            vectordb: vectordb_kosroberta
+          - module_type: vectordb
+            vectordb: vectordb_kosimcse
+          - module_type: vectordb
+            vectordb: vectordb_mpnet
+          - module_type: vectordb
+            vectordb: vectordb_minilm
+          - module_type: vectordb
+            vectordb: vectordb_e5
+          - module_type: vectordb
+            vectordb: vectordb_bgem3

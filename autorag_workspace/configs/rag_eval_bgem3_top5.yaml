@@ -1,0 +1,77 @@
+# =========================
+# VectorDB 설정 (BGE-M3)
+# =========================
+vectordb:
+  - name: vectordb_bgem3
+    db_type: chroma
+    client_type: persistent
+    path: ./chroma_db/bgem3
+    embedding_batch: 16
+    collection_name: bgem3_collection
+    embedding_model:
+      - type: huggingface
+        model_name: BAAI/bge-m3
+
+
+# =========================
+# Node Lines
+# =========================
+node_lines:
+  # -------------------------
+  # Retrieval 평가
+  # -------------------------
+  - node_line_name: retrieve_node_line
+    nodes:
+      - node_type: semantic_retrieval
+        strategy:
+          metrics:
+            - retrieval_f1
+            - retrieval_recall
+            - retrieval_precision
+            - retrieval_ndcg
+            - retrieval_map
+            - retrieval_mrr
+        top_k: 5
+        modules:
+          - module_type: vectordb
+            vectordb: vectordb_bgem3
+
+  # -------------------------
+  # Prompt + Generation 평가
+  # -------------------------
+  - node_line_name: generation_node_line
+    nodes:
+      - node_type: prompt_maker
+        strategy:
+          metrics:
+            - bleu
+            - meteor
+            - rouge
+        modules:
+          - module_type: fstring
+            prompt: |
+              다음 문서들을 참고하여 질문에 답변하세요.
+              문서에 명시되지 않은 내용은 추측하지 마세요.
+
+              문서:
+              {retrieved_contents}
+
+              질문:
+              {query}
+
+              답변:
+
+      - node_type: generator
+        strategy:
+          metrics:
+            - bleu
+            - meteor
+            - rouge
+            - bert_score
+            - sem_score
+        modules:
+          - module_type: llama_index_llm
+            llm: huggingfacellm
+            model: Qwen/Qwen2.5-7B-Instruct
+            max_tokens: 512
+            temperature: 0.3

@@ -1,0 +1,2 @@
+Approach,Semantic Similarity,BERTScore Precision,BERTScore Recall,BERTScore F1
+Proposed System,0.8056,0.8349,0.8982,0.8641
