@@ -18,12 +18,12 @@ class Config:
 
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")
     LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
-    LOCAL_LLM_MODEL = os.getenv("LOCAL_LLM_MODEL", "Qwen/Qwen2-7B-Instruct")
+    LOCAL_LLM_MODEL = os.getenv("LOCAL_LLM_MODEL", "Qwen/Qwen3-4B-Instruct-2507")
     LLM_API_KEY = os.getenv("OPENAI_API_KEY", None)
     LLM_BASE_URL = os.getenv("LLM_BASE_URL", None)
 
     RAG_ENABLED = True
-    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BM-K/KoSimCSE-roberta")
+    EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
     TOP_K_RETRIEVAL = 20
     SIMILARITY_THRESHOLD = 0.65
     EMBEDDING_PROVIDER = "faiss"
@@ -31,7 +31,7 @@ class Config:
     AGENT_VERBOSE = os.getenv("AGENT_VERBOSE", "false").lower() == "true"
     REASONING_ENABLED = True
 
-    DATA_DAYS_RANGE = int(os.getenv("DATA_DAYS_RANGE", "180"))
+    DATA_DAYS_RANGE = int(os.getenv("DATA_DAYS_RANGE", "90"))
     MAX_PAGES_PER_ENDPOINT = int(os.getenv("MAX_PAGES_PER_ENDPOINT", "5"))
 
     CACHE_DIR = Path("cache")

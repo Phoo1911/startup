@@ -16,8 +16,8 @@ load_dotenv()
 
 from config.settings import Config
 from models.data import UserProfile
-from core.orchestrator_enhanced import EnhancedAgenticOrchestrator, run_ablation_study
-from core.ground_truth import build_rule_based_ground_truth
+from legacy_core.orchestrator_enhanced import EnhancedAgenticOrchestrator, run_ablation_study
+from legacy_core.ground_truth import build_rule_based_ground_truth
 
 
 # ═══════════════════════════════════════════════

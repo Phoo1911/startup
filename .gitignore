@@ -61,3 +61,12 @@ htmlcov/
 
 # Docker
 .dockerignore
+.venv_autorag310/
+.venv_autorag311_win/
+__pycache__/
+*.pyc
+.env
+cache/
+logs/
+eval_logs/
+reports/

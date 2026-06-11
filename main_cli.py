@@ -14,7 +14,7 @@ load_dotenv()
 
 from config.settings import Config
 from models.data import UserProfile
-from core.orchestrator import AgenticOrchestrator
+from legacy_core.orchestrator import AgenticOrchestrator
 
 
 def test_recommendation():

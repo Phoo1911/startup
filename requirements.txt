@@ -25,7 +25,8 @@ openpyxl>=3.1.0
 black>=23.0.0
 
 # RAG & Embeddings
-sentence-transformers==2.3.1
+# Keep this unpinned here because a newer lower section requires >=2.7.0.
+# Pinning to 2.3.1 makes resolution impossible.
 faiss-cpu==1.7.4  # Optional: for faster search
 
 # Web Interface
@@ -40,3 +41,25 @@ loguru==0.7.2
 # Testing (Optional)
 pytest==8.0.0
 pytest-asyncio==0.23.0
+
+# ── Core pipeline ──────────────────────────────────────────────────────────
+langgraph>=0.1.0
+langchain>=0.2.0
+langchain-community>=0.2.0
+
+# ── LLM ────────────────────────────────────────────────────────────────────
+openai>=1.0.0
+google-genai>=0.3.0
+
+# ── Retrieval ───────────────────────────────────────────────────────────────
+faiss-cpu>=1.7.4            # swap for faiss-gpu on GPU machines
+sentence-transformers>=2.7.0  # embedding + cross-encoder reranker
+
+# ── Date parsing ────────────────────────────────────────────────────────────
+python-dateutil>=2.8.2      # FIX: was missing; deadline_tool uses dateutil.parser
+                            # Falls back to stdlib if absent, but dateutil handles
+                            # more Korean/ISO date formats robustly.
+
+# ── Utilities ───────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+numpy>=1.24.0
