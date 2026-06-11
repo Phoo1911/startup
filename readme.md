@@ -1,6 +1,6 @@
-# Startup Support Retrieval System
+# Agentic AI-based Startup Support System
 
-FastAPI + React + `agentic_hybrid` 기반 창업지원 정보 검색/추천 시스템입니다.
+FastAPI + React + `agentic` 기반 창업지원 정보 검색/추천/챗봇 시스템입니다.
 
 ## 구성
 
