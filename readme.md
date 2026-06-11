@@ -21,14 +21,7 @@ FastAPI + React + `agentic` 기반 창업지원 정보 검색/추천/챗봇 시�
    - `cache/rag_index.*` 재생성
    - FastAPI 런타임 재초기화
 
-## 요구사항
 
-- Python 3.11 권장
-- 의존성 설치:
-
-```powershell
-python -m pip install -r requirements.txt
-```
 
 ## 환경변수
 
@@ -63,7 +56,6 @@ AH_LLM_MODEL=gemini-2.5-pro
 주의:
 
 - `KISED_SERVICE_KEY`는 전체 키여야 합니다.
-- `.env` 수정 후에는 서버를 완전히 재시작해야 합니다.
 
 ## 실행
 
