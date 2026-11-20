@@ -36,7 +36,7 @@ AutoRAG 연구에서 관련 문서를 잘 찾는 것까지는 확인했지만, �
   → revise                 답변 검토, 근거가 부족하면 재검색 후 수정
 ```
 
-비교용 `baseline_pure` 모드는 `retrieve → generate`만 실행합니다. 각 단계를 하나씩 뺀 비교 모드(`no_planner_dense`, `no_revise_dense` 등)는 `agentic_hybrid/config.py`에 있습니다.
+비교용 `baseline_pure` 모드는 `retrieve → generate`만 실행합니다.
 
 ## 폴더 구성
 
