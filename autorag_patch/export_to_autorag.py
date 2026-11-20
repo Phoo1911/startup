@@ -14,7 +14,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from config.settings import Config
-from agents.data_collector import DataCollectionAgent
+from legacy_agents.data_collector import DataCollectionAgent
 from utils.text import clean_text, safe_get
 
 CANONICAL_TYPES = {

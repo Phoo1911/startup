@@ -7,10 +7,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
-from agents.data_collector import DataCollectionAgent
-from agents.rag_builder import RAGBuilderAgent
+from legacy_agents.data_collector import DataCollectionAgent
+from legacy_agents.rag_builder import RAGBuilderAgent
 from config.settings import Config
-from core.rag_system import RAGSystem
+from legacy_core.rag_system import RAGSystem
 
 
 def _count_items(raw_data: Dict[str, List[Dict]]) -> Dict[str, int]:
