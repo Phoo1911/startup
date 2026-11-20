@@ -52,8 +52,11 @@ AutoRAG 연구에서 관련 문서를 잘 찾는 것까지는 확인했지만, �
 ## 실행
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt          # 웹 앱·질의응답·재수집
+pip install -r requirements-eval.txt     # 평가 스크립트까지 돌릴 때
 ```
+
+AutoRAG 청킹·QA 생성(`autorag_patch/`)은 의존성이 많아 별도 가상환경에서 `requirements-autorag.txt`로 설치합니다.
 
 `.env`:
 
