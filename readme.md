@@ -113,7 +113,7 @@ python evaluate_hallucination.py
 python evaluate_policy_accuracy.py
 ```
 
-AutoRAG 검색·생성 평가 설정은 `autorag_workspace/configs/`, 기존 결과 표는 `autorag_workspace/results_agent/`에 있습니다. 실험 당시 벡터 DB(`chroma_db_fresh_v8/`)도 포함되어 있어 저장소 크기가 큽니다.
+AutoRAG 검색·생성 평가 설정은 `autorag_workspace/configs/`에 있습니다. 
 
 ## 한계
 
