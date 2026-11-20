@@ -1,0 +1,7 @@
+# AutoRAG chunking / QA generation (autorag_patch/). AutoRAG pins many of its own
+# dependencies, so install this in a separate virtual environment.
+autorag
+llama-index-llms-openai
+llama-index-llms-huggingface
+pandas>=2.0
+pyarrow>=14

@@ -1,0 +1,36 @@
+name: install-check
+on:
+  push:
+    branches: [main]
+    paths: ["requirements*.txt", "**.py", ".github/workflows/install-check.yml"]
+  pull_request:
+
+jobs:
+  imports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install service + eval requirements (CPU torch)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements-eval.txt
+          pip check
+      - name: Import the web app, graph, rebuild and eval entry points
+        run: |
+          python - <<'PY'
+          import importlib
+          mods = [
+              "web.fastapi_app", "agentic_hybrid.graph", "agentic_hybrid.main_agentic",
+              "legacy_agents.data_collector", "legacy_agents.rag_builder", "legacy_core.orchestrator",
+              "weekly_rebuild", "run_agent_eval", "evaluate_hallucination", "evaluate_policy_accuracy",
+          ]
+          for m in mods:
+              importlib.import_module(m)
+              print("ok", m)
+          PY
